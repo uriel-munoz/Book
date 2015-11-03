@@ -5,7 +5,7 @@ include 'includes/database.inc.php';
 $conn = getDatabaseConnection();
 //gets database connection
 
-function displayCategories() {
+function displayAuthor() {
 	$sql = "SELECT DISTINCT author
         FROM gp_Books WHERE 1";
 	$records = getDataBySQL($sql);
@@ -15,7 +15,7 @@ function displayCategories() {
 }
 
 function displayAllProducts() {
-	$sql = "SELECT title, author FROM gp_Books";
+	$sql = "SELECT title, author FROM gp_Books ";
 
 	$records = getDataBySQL($sql);
 	return $records;
@@ -30,7 +30,7 @@ function filterProducts() {
 	global $conn;
 	if (isset($_GET['searchForm'])) {//user submitted the filter form
 
-		$categoryId = $_GET['categoryId'];
+		$author = $_GET['author'];
 
 		//This is the WRONG way to create queries because it allows SQL injection
 		/*
@@ -77,13 +77,9 @@ function filterProducts() {
 
 }
 
-function isHealthyChoiceChecked() {
 
-	if (isset($_GET['healthyChoice'])) {
-		return "checked";
-	}
 
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -98,7 +94,7 @@ function isHealthyChoiceChecked() {
 		Remove this if you use the .htaccess -->
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-		<title>Lab 5</title>
+		<title>Books</title>
 		<meta name="description" content="">
 		<meta name="author" content="anto1513">
 		<meta name="viewport" content="width=device-width; initial-scale=1.0">
@@ -111,15 +107,15 @@ function isHealthyChoiceChecked() {
 	<body>
 		<div>
 			<header>
-				<h1>Otter Experess-Select Product</h1>
+				<h1>Books for All</h1>
 			</header>
 
 			<form method = "get" action = "index.php">
 				Select Author:
-				<select name= "categoryId">
+				<select name= "Author">
 					<!--this data will come from the database-->
 
-					<?=displayCategories() ?>
+					<?=displayAuthor() ?>
 					<!--
 					<option value = "1">Soft Drinks</option>
 					<option value = "2"> Snacks</option>
@@ -127,16 +123,13 @@ function isHealthyChoiceChecked() {
 
 				</select>
 
-				Max price:
-				<input type="number" min="0"  name="maxPrice" value="<?=$_GET['maxPrice'] ?>">
-
-				<input type="checkbox" name="healthyChoice" id="healthyChoice"  <?=isset($_GET['healthyChoice']) ? "checked" : "" ?> />
-				<label for="healthyChoice">Healthy Choice</label>
+				Customer:
+				<input type="text" name="customer" value="<?=$_GET['customer'] ?>">
 
 				OrderBy:
 				<select name="orderBy">
-					<option value="price">Price</option>
-					<option value="productName">Name</option>
+					<option value="Title">Title</option>
+					<option value="Author">Author</option>
 
 				</select>
 				<br />
