@@ -15,7 +15,10 @@ function displayAuthor() {
 }
 
 function displayAllProducts() {
-	$sql = "SELECT title, author FROM gp_Books ";
+	$sql = "SELECT title, author, name, quantity,ISBN
+FROM gp_Customer
+NATURAL JOIN gp_Order
+NATURAL JOIN gp_Books";
 
 	$records = getDataBySQL($sql);
 	return $records;
@@ -132,7 +135,10 @@ function filterProducts() {
 					<option value="Author">Author</option>
 
 				</select>
-				<br />
+			
+			
+			
+			
 				<input type="submit" value="Search Products" name="searchForm" />
 			</form>
 
@@ -157,17 +163,30 @@ function filterProducts() {
 				echo "<td id = 'colTitle'>";
 				echo "Author";
 				echo "</td>";
+				echo "<td id = 'colTitle'>";
+				echo "Customer";
+				echo "</td>";
+				echo "<td id = 'colTitle'>";
+				echo "quantity";
+				echo "</td>";
 				echo "</tr>";
 
 				foreach ($records as $record) {
 					echo "<tr>";
 					echo "<td>";
-					//echo "<a target = 'getProductIframe' href='getProductInfo.php?productId=" . $record['productId'] . "'>";
+					echo "<a target = 'getProductIframe' href='getProductInfo.php?ISBN=" . $record['ISBN'] . "'>";
 					echo $record['title'];
 					echo "</a>";
 					echo "</td>";
 					echo "<td>";
 					echo "" . $record['author'];
+					echo "</td>";
+					echo "<td>";
+					echo "<a target = 'getCustomerIframe' href='getCustomerInfo.php?name=" . $record['name'] . "'>";
+					echo "" . $record['name'];
+					echo "</td>";
+					echo "<td>";
+					echo "" . $record['quantity'];
 					echo "</td>";
 					echo "</tr>";
 				}
@@ -178,6 +197,12 @@ function filterProducts() {
 
 				<iframe src="getProductInfo.php" name="getProductIframe" width="250" height="300" frameborder="0"/>
 				</iframe>
+				
+			
+				<iframe src="getCustomerInfo.php" name="getCustomerIframe" width="250" height="300" frameborder="0"/>
+							</iframe>
+		
+
 
 			</div>
 
