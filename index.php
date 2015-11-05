@@ -29,41 +29,44 @@ NATURAL JOIN gp_Books";
 
 }
 
-
-function selectAuthor() { //anthony
-	$author = $_GET['Author'];
-	
-	$sql = "SELECT title, author, summary
-			FROM gp_Books
-			WHERE author = :author";
-			
-	$namedParameters = array();
-	$namedParameters[":author"] = $author;	
-		
-	$records = getDataBySQL($sql);
-	return $records;
-}
-
 function filterProducts() {
 	global $conn;
-	if (isset($_GET['searchForm'])) {//user submitted the filter form
+	if (isset($_GET['searchAuthor'])) {
 
-		$author = $_GET['author'];
+		$author = $_GET['Author'];
 
-		//This is the WRONG way to create queries because it allows SQL injection
-		/*
-		 $sql = "SELECT productName, price
-		 FROM oe_product
-		 WHERE categoryId = '" . $categoryId . "'" ;
-		 */
+		$sql = "SELECT title, author, summary,ISBN
+			FROM gp_Books 
+			WHERE author = :author";
+		$namedParameters[":author"] = $author;
+		$statement = $conn -> prepare($sql);
+		$statement -> execute($namedParameters);
+		$records = $statement -> fetchAll(PDO::FETCH_ASSOC);
+		return $records;
+	} else if (isset($_GET['searchForm'])) {//user submitted the filter form
 
-		$sql = "SELECT productName, price, productId 
-                FROM oe_product
-                WHERE categoryId = :categoryId";
+		$sort = $_GET['orderBy'];
+		
+		if ($sort == "Title") {
+			$records = orderByTitle();
+		} else {
+			$records = sortByAuthor();
+
+		}
+		return $records;
+		$author = $_GET['Author'];
+
+		$sql = "SELECT title, author, summary,ISBN, name,quantity
+			FROM gp_Books NATURAL JOIN gp_Customer NATURAL JOIN gp_Order
+			WHERE author = :author";
 		//using Named Parameters (prevents SQL injection)
 
 		$namedParameters = array();
-		$namedParameters[":categoryId"] = $categoryId;
+		$namedParameters[":author"] = $author;
+		$statement = $conn -> prepare($sql);
+		$statement -> execute($namedParameters);
+		$records = $statement -> fetchAll(PDO::FETCH_ASSOC);
+		return $records;
 
 		$maxPrice = $_GET['maxPrice'];
 
@@ -95,9 +98,28 @@ function filterProducts() {
 
 }
 
+function sortByAuthor() {
 
+	$sql = "SELECT title, author, summary,ISBN
+			FROM gp_Books
+			WHERE 1 ORDER BY author";
 
+	$records = getDataBySQL($sql);
+	return $records;
+}
 
+function orderByTitle() {
+
+	$sql = "SELECT 	a.title, a.author, a.summary, a.ISBN
+FROM 	gp_Books a, gp_Customer b, gp_Order c
+WHERE 	b.cust_Id = c.cust_Id
+AND	c.ISBN = a.ISBN
+GROUP BY	a.title
+ORDER BY	a.title ASC";
+
+	$records = getDataBySQL($sql);
+	return $records;
+}
 ?>
 
 <!DOCTYPE html>
@@ -140,9 +162,14 @@ function filterProducts() {
 					<option value = "3"> Sandwiches </option>-->
 
 				</select>
+				<input type="submit" value="Search by Author" name="searchAuthor" />
+				<br/>
 
+				<!--
 				Customer:
 				<input type="text" name="customer" value="<?=$_GET['customer'] ?>">
+				<input type="submit" value="Search Customer" name="searchCustomer" />
+				<br/>-->
 
 				OrderBy:
 				<select name="orderBy">
@@ -150,11 +177,10 @@ function filterProducts() {
 					<option value="Author">Author</option>
 
 				</select>
-			
-			
-			
-			
-				<input type="submit" value="Search Products" name="searchForm" />
+
+				<input type="submit" value="Sort Books" name="searchForm" />
+				<br/>
+				<input type="submit" value="Display All" name="Di" />
 			</form>
 
 			<hr>
@@ -163,70 +189,89 @@ function filterProducts() {
 				<?php
 
 				//Displays all products by default
-				if (!isset($_GET['searchForm'])) {
+				if (!isset($_GET['searchForm']) || !isset($_GET['searchAuthor'])) {
 					$records = displayAllProducts();
 
 				} else {
-					
-					if(isset($_GET['Author'])) //If the Select Author is Set
-					{
-						$records = selectAuthor(); //Display only selected author
-					}
-					
-					else {
-						$records = filterProducts();
-					}
-					
+
+					$records = filterProducts();
 				}
 
-				echo "<table border = 1>";
-				echo "<tr>";
-				echo "<td id = 'colTitle'>";
-				echo "Title";
-				echo "</td>";
-				echo "<td id = 'colTitle'>";
-				echo "Author";
-				echo "</td>";
-				echo "<td id = 'colTitle'>";
-				echo "Customer";
-				echo "</td>";
-				echo "<td id = 'colTitle'>";
-				echo "quantity";
-				echo "</td>";
-				echo "</tr>";
+				if (isset($_GET['searchAuthor']) || isset($_GET['searchForm'])) {
+					$records = filterProducts();
 
-				foreach ($records as $record) {
+					echo "<table border = 1>";
 					echo "<tr>";
-					echo "<td>";
-					echo "<a target = 'getProductIframe' href='getProductInfo.php?ISBN=" . $record['ISBN'] . "'>";
-					echo $record['title'];
-					echo "</a>";
+					echo "<td id = 'colTitle'>";
+					echo "Title";
 					echo "</td>";
-					echo "<td>";
-					echo "" . $record['author'];
+					echo "<td id = 'colTitle'>";
+					echo "Author";
 					echo "</td>";
-					echo "<td>";
-					echo "<a target = 'getCustomerIframe' href='getCustomerInfo.php?name=" . $record['name'] . "'>";
-					echo "" . $record['name'];
+
+					echo "</tr>";
+
+					foreach ($records as $record) {
+						echo "<tr>";
+						echo "<td>";
+						echo "<a target = 'getProductIframe' href='getProductInfo.php?ISBN=" . $record['ISBN'] . "'>";
+						echo $record['title'];
+						echo "</a>";
+						echo "</td>";
+						echo "<td>";
+						echo "" . $record['author'];
+						echo "</td>";
+						echo "</tr>";
+					}
+					echo "</table>";
+				} 
+				else {
+					echo "<table border = 1>";
+					echo "<tr>";
+					echo "<td id = 'colTitle'>";
+					echo "Title";
 					echo "</td>";
-					echo "<td>";
-					echo "" . $record['quantity'];
+					echo "<td id = 'colTitle'>";
+					echo "Author";
+					echo "</td>";
+					echo "<td id = 'colTitle'>";
+					echo "Customer";
+					echo "</td>";
+					echo "<td id = 'colTitle'>";
+					echo "quantity";
 					echo "</td>";
 					echo "</tr>";
+
+					foreach ($records as $record) {
+						echo "<tr>";
+						echo "<td>";
+						echo "<a target = 'getProductIframe' href='getProductInfo.php?ISBN=" . $record['ISBN'] . "'>";
+						echo $record['title'];
+						echo "</a>";
+						echo "</td>";
+						echo "<td>";
+						echo "" . $record['author'];
+						echo "</td>";
+						echo "<td>";
+						echo "<a target = 'getCustomerIframe' href='getCustomerInfo.php?name=" . $record['name'] . "'>";
+						echo "" . $record['name'];
+						echo "</td>";
+						echo "<td>";
+						echo "" . $record['quantity'];
+						echo "</td>";
+						echo "</tr>";
+					}
+					echo "</table>";
 				}
-				echo "</table>";
 				?>
 			</div>
 			<div style="float:left">
 
 				<iframe src="getProductInfo.php" name="getProductIframe" width="250" height="300" frameborder="0"/>
 				</iframe>
-				
-			
-				<iframe src="getCustomerInfo.php" name="getCustomerIframe" width="250" height="300" frameborder="0"/>
-							</iframe>
-		
 
+				<iframe src="getCustomerInfo.php" name="getCustomerIframe" width="250" height="300" frameborder="0"/>
+				</iframe>
 
 			</div>
 
@@ -235,7 +280,7 @@ function filterProducts() {
 		<footer style="clear:left">
 			<hr>
 			<br />
-		
+
 			<br />
 			<img src="../../img/csumb-logo.png" alt="California State University Monterey Bay Logo" />
 		</footer>
