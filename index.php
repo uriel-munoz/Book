@@ -29,6 +29,21 @@ NATURAL JOIN gp_Books";
 
 }
 
+
+function selectAuthor() { //anthony
+	$author = $_GET['Author'];
+	
+	$sql = "SELECT title, author, summary
+			FROM gp_Books
+			WHERE author = :author";
+			
+	$namedParameters = array();
+	$namedParameters[":author"] = $author;	
+		
+	$records = getDataBySQL($sql);
+	return $records;
+}
+
 function filterProducts() {
 	global $conn;
 	if (isset($_GET['searchForm'])) {//user submitted the filter form
@@ -152,7 +167,16 @@ function filterProducts() {
 					$records = displayAllProducts();
 
 				} else {
-					$records = filterProducts();
+					
+					if(isset($_GET['Author'])) //If the Select Author is Set
+					{
+						$records = selectAuthor(); //Display only selected author
+					}
+					
+					else {
+						$records = filterProducts();
+					}
+					
 				}
 
 				echo "<table border = 1>";
