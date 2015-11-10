@@ -1,18 +1,112 @@
-
-footer {
-	text-align: center;
-	float:none;
-	font-size: .8em;
-	
+#wrapper {
+	border: 0px solid black;
+	margin: 0 auto;
+	width: 1200px;
 }
-body{
-/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#cedce7+0,596a72+100;Grey+3D+%231 */
-background: rgb(206,220,231); /* Old browsers */
-background: -moz-linear-gradient(top, rgba(206,220,231,1) 0%, rgba(89,106,114,1) 100%); /* FF3.6+ */
-background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(206,220,231,1)), color-stop(100%,rgba(89,106,114,1))); /* Chrome,Safari4+ */
-background: -webkit-linear-gradient(top, rgba(206,220,231,1) 0%,rgba(89,106,114,1) 100%); /* Chrome10+,Safari5.1+ */
-background: -o-linear-gradient(top, rgba(206,220,231,1) 0%,rgba(89,106,114,1) 100%); /* Opera 11.10+ */
-background: -ms-linear-gradient(top, rgba(206,220,231,1) 0%,rgba(89,106,114,1) 100%); /* IE10+ */
-background: linear-gradient(to bottom, rgba(206,220,231,1) 0%,rgba(89,106,114,1) 100%); /* W3C */
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cedce7', endColorstr='#596a72',GradientType=0 ); /* IE6-9 */	
+
+#header {
+	border: 0px solid black;
+	margin: 10px;
+	text-align: center;
+	text-shadow: 0px 5px 5px gray;
+	font-size: 20px;
+}
+
+#menu {
+	border: 0px solid black;
+	margin: 10px;
+}
+
+#selectionPart_A {
+	border: 0px solid black;
+	margin: 10px;
+	margin-left: 40px;
+	width: 455px;
+	float: left;
+}
+
+#selectionPart_B {
+	border: 0px solid black;
+	margin: 10px;
+	margin-left: -10px;
+	width: 100px;
+	float: left;
+}
+
+#contents {
+	border: 0px solid black;
+	margin: 10px;	
+}
+
+#tableShowed {
+	border: 0px solid black;
+	margin: 10px;	
+	width: 832px;
+	float: left;
+}
+
+#informationShowed {
+	border: 0px solid black;
+	margin: 10px;		
+	width: 300px;
+	float: right;
+}
+
+#productInfo {
+	border: 0px solid black;
+	margin: 10px;	
+}
+
+#customerInfo {
+	border: 0px solid black;
+	margin: 10px;	
+}
+
+#footer {
+	border: 0px solid black;
+	margin: 10px;	
+	text-align: center;
+}
+
+.title {
+	font-weight: 900;
+	color: black;
+	font-size: 20px;
+}
+
+.productName {
+	text-align: center;
+}
+
+hr {
+	border: 0;
+	height: 1px;
+	background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
+
+table {
+	margin: auto;
+	float: center;
+	text-align: center;
+	padding: 4px;
+}
+
+td {
+	padding: 4px;
+}
+
+tr {
+	padding: 4px;
+}
+
+table a {
+	text-decoration: none;
+	color: purple;
+	font-weight: 600;
+}
+
+table span {
+	text-decoration: none;
+	color: black;
+	font-weight: 600;
 }
