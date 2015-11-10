@@ -258,7 +258,6 @@ $sql = "SELECT  SUM(quantity) as sumq
 				<input type="submit" value="Display All" name="Di" />
 				
 				<br><br>
-				<input type="submit" value="Click Here to View Reports" name="reports"/>
 			</form>
 
 			<hr>
@@ -362,7 +361,7 @@ $sql = "SELECT  SUM(quantity) as sumq
 	<h1>Scroll Down for Reports</h1>
 	
 	
-    <div id = "tableWrapper" style="display:inline-block">  	
+    <div id = "tableWrapper">  	
 	<h2>Report 1: Group By Customer</h2>
 	<pre>
 				SELECT title, author, name, quantity,ISBN
