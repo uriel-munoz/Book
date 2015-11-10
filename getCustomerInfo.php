@@ -14,8 +14,16 @@ if (isset($_GET['name'])) {
 		$statement -> execute($namedParameters);
 		$records = $statement -> fetchAll(PDO::FETCH_ASSOC);
 	foreach ($records as $record) {
-		echo "Phone: " . $record['phone'] . "<br />";
-		echo "Email: " . $record['email'] . "<br />";
+		echo "<div class='productName'><a class='title'>NAME</a></div>";
+		echo "<div style='text-align: center; font-size: 20px; color: green; font-weight: 600; height: 30px;'>" . $record['name'] . "</div>" . "<br />";
+		
+		echo "<div class='productName'><a class='title'>PHONE</a></div>";
+		echo "<div style='text-align: center; font-size: 20px; color: green; font-weight: 600; height: 30px;'>" . $record['phone'] . "</div>" . "<br />";
+		
+		echo "<div class='productName'><a class='title'>E-MAIL</a></div>";
+		echo "<div style='text-align: center; font-size: 20px; color: green; font-weight: 600; height: 30px;'>" . $record['email'] . "</div>" . "<br />";
 	}
 }
 ?>
+
+<link href="css/styles.css" rel="stylesheet">
