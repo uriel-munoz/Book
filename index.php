@@ -15,7 +15,10 @@ function displayAuthor() {
 }
 
 function displayAllProducts() {
-	$sql = "SELECT title, author FROM gp_Books ";
+	$sql = "SELECT title, author, name, quantity,ISBN
+FROM gp_Customer
+NATURAL JOIN gp_Order
+NATURAL JOIN gp_Books";
 
 	$records = getDataBySQL($sql);
 	return $records;
@@ -26,41 +29,44 @@ function displayAllProducts() {
 
 }
 
-
-function selectAuthor() { //anthony
-	$author = $_GET['Author'];
-	
-	$sql = "SELECT title, author, summary
-			FROM gp_Books
-			WHERE author = :author";
-			
-	$namedParameters = array();
-	$namedParameters[":author"] = $author;	
-		
-	$records = getDataBySQL($sql);
-	return $records;
-}
-
 function filterProducts() {
 	global $conn;
-	if (isset($_GET['searchForm'])) {//user submitted the filter form
+	if (isset($_GET['searchAuthor'])) {
 
-		$author = $_GET['author'];
+		$author = $_GET['Author'];
 
-		//This is the WRONG way to create queries because it allows SQL injection
-		/*
-		 $sql = "SELECT productName, price
-		 FROM oe_product
-		 WHERE categoryId = '" . $categoryId . "'" ;
-		 */
+		$sql = "SELECT title, author, summary,ISBN
+			FROM gp_Books 
+			WHERE author = :author";
+		$namedParameters[":author"] = $author;
+		$statement = $conn -> prepare($sql);
+		$statement -> execute($namedParameters);
+		$records = $statement -> fetchAll(PDO::FETCH_ASSOC);
+		return $records;
+	} else if (isset($_GET['searchForm'])) {//user submitted the filter form
 
-		$sql = "SELECT productName, price, productId 
-                FROM oe_product
-                WHERE categoryId = :categoryId";
+		$sort = $_GET['orderBy'];
+		
+		if ($sort == "Title") {
+			$records = orderByTitle();
+		} else {
+			$records = sortByAuthor();
+
+		}
+		return $records;
+		$author = $_GET['Author'];
+
+		$sql = "SELECT title, author, summary,ISBN, name,quantity
+			FROM gp_Books NATURAL JOIN gp_Customer NATURAL JOIN gp_Order
+			WHERE author = :author";
 		//using Named Parameters (prevents SQL injection)
 
 		$namedParameters = array();
-		$namedParameters[":categoryId"] = $categoryId;
+		$namedParameters[":author"] = $author;
+		$statement = $conn -> prepare($sql);
+		$statement -> execute($namedParameters);
+		$records = $statement -> fetchAll(PDO::FETCH_ASSOC);
+		return $records;
 
 		$maxPrice = $_GET['maxPrice'];
 
@@ -92,8 +98,102 @@ function filterProducts() {
 
 }
 
+function sortByAuthor() {
+
+	$sql = "SELECT title, author, summary,ISBN
+			FROM gp_Books
+			WHERE 1 ORDER BY author";
+
+	$records = getDataBySQL($sql);
+	return $records;
+}
+
+function orderByTitle() {
+
+	$sql = "SELECT 	a.title, a.author, a.summary, a.ISBN
+FROM 	gp_Books a, gp_Customer b, gp_Order c
+WHERE 	b.cust_Id = c.cust_Id
+AND	c.ISBN = a.ISBN
+GROUP BY	a.title
+ORDER BY	a.title ASC";
+
+	$records = getDataBySQL($sql);
+	return $records;
+}
+
+function groupByName() {
+	$sql = "SELECT title, author, name, quantity,ISBN
+				FROM gp_Customer
+				NATURAL JOIN gp_Order
+				NATURAL JOIN gp_Books
+				GROUP BY name";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['title'] . "</td>";
+					echo "<td id ='center'>" . $record['author'] . "</td>";
+					echo "<td id = 'center'>" . $record['name'];
+				}
+}
 
 
+function maxQ() {
+	
+							
+							
+	$sql = "SELECT MAX(quantity) AS maxq, title, author
+							FROM gp_Customer
+							NATURAL JOIN gp_Order
+							NATURAL JOIN gp_Books";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['title'] . "</td>";
+					echo "<td id ='center'>" . $record['author'] . "</td>";
+					echo "<td id = 'center'>" . $record['maxq'];
+				}
+}
+
+
+function avgQ() {
+	
+
+$sql = "SELECT title, author, quantity 
+				FROM gp_Order
+				NATURAL JOIN gp_Books
+				WHERE quantity < (SELECT AVG(quantity) 
+				FROM gp_Order)";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['title'] . "</td>";
+					echo "<td id ='center'>" . $record['author'] . "</td>";
+					echo "<td id = 'center'>" . $record['quantity'];
+				}
+
+
+}
+
+function sumQ() {
+$sql = "SELECT  SUM(quantity) as sumq 
+				FROM gp_Order";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['sumq'] . "</td>";
+				}
+}
+
+
+//test 
 
 ?>
 
@@ -137,9 +237,14 @@ function filterProducts() {
 					<option value = "3"> Sandwiches </option>-->
 
 				</select>
+				<input type="submit" value="Search by Author" name="searchAuthor" />
+				<br/>
 
+				<!--
 				Customer:
 				<input type="text" name="customer" value="<?=$_GET['customer'] ?>">
+				<input type="submit" value="Search Customer" name="searchCustomer" />
+				<br/>-->
 
 				OrderBy:
 				<select name="orderBy">
@@ -147,8 +252,13 @@ function filterProducts() {
 					<option value="Author">Author</option>
 
 				</select>
-				<br />
-				<input type="submit" value="Search Products" name="searchForm" />
+
+				<input type="submit" value="Sort Books" name="searchForm" />
+				<br/>
+				<input type="submit" value="Display All" name="Di" />
+				
+				<br><br>
+				<input type="submit" value="Click Here to View Reports" name="reports"/>
 			</form>
 
 			<hr>
@@ -156,46 +266,84 @@ function filterProducts() {
 			<div style="float:left">
 				<?php
 
+				
+				
 				//Displays all products by default
-				if (!isset($_GET['searchForm'])) {
+				if (!isset($_GET['searchForm']) || !isset($_GET['searchAuthor'])) {
 					$records = displayAllProducts();
 
 				} else {
-					
-					if(isset($_GET['Author'])) //If the Select Author is Set
-					{
-						$records = selectAuthor(); //Display only selected author
-					}
-					
-					else {
-						$records = filterProducts();
-					}
-					
+
+					$records = filterProducts();
 				}
 
-				echo "<table border = 1>";
-				echo "<tr>";
-				echo "<td id = 'colTitle'>";
-				echo "Title";
-				echo "</td>";
-				echo "<td id = 'colTitle'>";
-				echo "Author";
-				echo "</td>";
-				echo "</tr>";
+				if (isset($_GET['searchAuthor']) || isset($_GET['searchForm'])) {
+					$records = filterProducts();
 
-				foreach ($records as $record) {
+					echo "<table border = 1>";
 					echo "<tr>";
-					echo "<td>";
-					//echo "<a target = 'getProductIframe' href='getProductInfo.php?productId=" . $record['productId'] . "'>";
-					echo $record['title'];
-					echo "</a>";
+					echo "<td id = 'colTitle'>";
+					echo "Title";
 					echo "</td>";
-					echo "<td>";
-					echo "" . $record['author'];
+					echo "<td id = 'colTitle'>";
+					echo "Author";
+					echo "</td>";
+
+					echo "</tr>";
+
+					foreach ($records as $record) {
+						echo "<tr>";
+						echo "<td>";
+						echo "<a target = 'getProductIframe' href='getProductInfo.php?ISBN=" . $record['ISBN'] . "'>";
+						echo $record['title'];
+						echo "</a>";
+						echo "</td>";
+						echo "<td>";
+						echo "" . $record['author'];
+						echo "</td>";
+						echo "</tr>";
+					}
+					echo "</table>";
+				} 
+				else {
+					echo "<table border = 1>";
+					echo "<tr>";
+					echo "<td id = 'colTitle'>";
+					echo "Title";
+					echo "</td>";
+					echo "<td id = 'colTitle'>";
+					echo "Author";
+					echo "</td>";
+					echo "<td id = 'colTitle'>";
+					echo "Customer";
+					echo "</td>";
+					echo "<td id = 'colTitle'>";
+					echo "quantity";
 					echo "</td>";
 					echo "</tr>";
-				}
-				echo "</table>";
+
+					foreach ($records as $record) {
+						echo "<tr>";
+						echo "<td>";
+						echo "<a target = 'getProductIframe' href='getProductInfo.php?ISBN=" . $record['ISBN'] . "'>";
+						echo $record['title'];
+						echo "</a>";
+						echo "</td>";
+						echo "<td>";
+						echo "" . $record['author'];
+						echo "</td>";
+						echo "<td>";
+						echo "<a target = 'getCustomerIframe' href='getCustomerInfo.php?name=" . $record['name'] . "'>";
+						echo "" . $record['name'];
+						echo "</td>";
+						echo "<td>";
+						echo "" . $record['quantity'];
+						echo "</td>";
+						echo "</tr>";
+					}
+					echo "</table>";
+				}	
+				
 				?>
 			</div>
 			<div style="float:left">
@@ -203,14 +351,94 @@ function filterProducts() {
 				<iframe src="getProductInfo.php" name="getProductIframe" width="250" height="300" frameborder="0"/>
 				</iframe>
 
+				<iframe src="getCustomerInfo.php" name="getCustomerIframe" width="250" height="300" frameborder="0"/>
+				</iframe>
+
 			</div>
+			
+			
+			
+	<!-- Adding Reports to the Bottom of the Webpage - Anthony -->
+	<h1>Scroll Down for Reports</h1>
+	
+	
+    <div id = "tableWrapper" style="display:inline-block">  	
+	<h2>Report 1: Group By Customer</h2>
+	<pre>
+				SELECT title, author, name, quantity,ISBN
+				FROM gp_Customer
+				NATURAL JOIN gp_Order
+				NATURAL JOIN gp_Books
+				GROUP BY name
+	</pre>
+	<table>
+		<th>Title: </th>
+		<th>Author: </th>
+		<th>Customer: </th>
+		<?php groupByName(); ?>
+			
+	</table>
+	</div>
+	<hr>
+	
+	<div id = "tableWrapper">  	
+	<h2>Report 2: Max Quantity Ordered</h2>
+	<pre>
+		SELECT MAX(quantity) AS maxq, title, author
+							FROM gp_Customer
+							NATURAL JOIN gp_Order
+							NATURAL JOIN gp_Books
+	</pre>
+	<table>
+		<th>Title: </th>
+		<th>Author: </th>
+		<th>Quantity: </th>
+		<?php maxQ(); ?>
+	</table>
+	</div>
+	
+	<hr>
+	
+	<div id = "tableWrapper">  	
+	<h2>Report 3: Less than Average Quantity </h2>
+	<pre>
+		SELECT title, author, quantity 
+				FROM gp_Order
+				NATURAL JOIN gp_Books
+				WHERE quantity < (SELECT AVG(quantity) 
+				FROM gp_Order)
+	</pre>
+	<table>
+		<th>Item: </th>
+		<th>Price: </th>
+		<th>Category: </th>
+		<?php avgQ(); ?>
+	</table>
+	</div>
+	
+	
+	<hr>	
+	
+	<div id = "tableWrapper">  	
+	<h2>Report 4: Sum of Quantity (Total Number of Orders) </h2>
+	<pre>
+		SELECT  SUM(quantity) as sumq 
+				FROM gp_Order
+	</pre>
+	<table>
+		<th>Total Orders: </th>
+		<?php sumQ(); ?>
+	</table>
+	</div>
+	
+	<hr>
 
 		</div>
 
 		<footer style="clear:left">
 			<hr>
 			<br />
-		
+
 			<br />
 			<img src="../../img/csumb-logo.png" alt="California State University Monterey Bay Logo" />
 		</footer>
