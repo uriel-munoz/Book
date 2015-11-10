@@ -92,6 +92,68 @@ function orderByTitle() {
 	$records = getDataBySQL($sql);
 	return $records;
 }
+function groupByName() {
+	$sql = "SELECT title, author, name, quantity,ISBN
+				FROM gp_Customer
+				NATURAL JOIN gp_Order
+				NATURAL JOIN gp_Books
+				GROUP BY name";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['title'] . "</td>";
+					echo "<td id ='center'>" . $record['author'] . "</td>";
+					echo "<td id = 'center'>" . $record['name'];
+				}
+}
+function maxQ() {
+	
+							
+							
+	$sql = "SELECT MAX(quantity) AS maxq, title, author
+							FROM gp_Customer
+							NATURAL JOIN gp_Order
+							NATURAL JOIN gp_Books";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['title'] . "</td>";
+					echo "<td id ='center'>" . $record['author'] . "</td>";
+					echo "<td id = 'center'>" . $record['maxq'];
+				}
+}
+function avgQ() {
+	
+$sql = "SELECT title, author, quantity 
+				FROM gp_Order
+				NATURAL JOIN gp_Books
+				WHERE quantity < (SELECT AVG(quantity) 
+				FROM gp_Order)";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['title'] . "</td>";
+					echo "<td id ='center'>" . $record['author'] . "</td>";
+					echo "<td id = 'center'>" . $record['quantity'];
+				}
+}
+function sumQ() {
+$sql = "SELECT  SUM(quantity) as sumq 
+				FROM gp_Order";
+				
+	$records = getDataBySQL($sql);
+				foreach($records as $record)
+				{
+					echo "<tr></tr>";
+					echo "<td id='name'>" . $record['sumq'] . "</td>";
+				}
+}
 ?>
 
 <!DOCTYPE html>
@@ -248,6 +310,84 @@ function orderByTitle() {
 				<div style="clear: both"></div>
 
 			</div>
+			<h1>Scroll Down for Reports</h1>
+	
+	
+    <div id = "tableWrapper">  	
+	<h2>Report 1: Group By Customer</h2>
+	<pre>
+				SELECT title, author, name, quantity,ISBN
+				FROM gp_Customer
+				NATURAL JOIN gp_Order
+				NATURAL JOIN gp_Books
+				GROUP BY name
+	</pre>
+	<table>
+		<th>Title: </th>
+		<th>Author: </th>
+		<th>Customer: </th>
+		<?php groupByName(); ?>
+			
+	</table>
+	</div>
+	<hr>
+	
+	<div id = "tableWrapper">  	
+	<h2>Report 2: Max Quantity Ordered</h2>
+	<pre>
+		SELECT MAX(quantity) AS maxq, title, author
+							FROM gp_Customer
+							NATURAL JOIN gp_Order
+							NATURAL JOIN gp_Books
+	</pre>
+	<table>
+		<th>Title: </th>
+		<th>Author: </th>
+		<th>Quantity: </th>
+		<?php maxQ(); ?>
+	</table>
+	</div>
+	
+	<hr>
+	
+	<div id = "tableWrapper">  	
+	<h2>Report 3: Less than Average Quantity </h2>
+	<pre>
+		SELECT title, author, quantity 
+				FROM gp_Order
+				NATURAL JOIN gp_Books
+				WHERE quantity < (SELECT AVG(quantity) 
+				FROM gp_Order)
+	</pre>
+	<table>
+		<th>Item: </th>
+		<th>Price: </th>
+		<th>Category: </th>
+		<?php avgQ(); ?>
+	</table>
+	</div>
+	
+	
+	<hr>	
+	
+	<div id = "tableWrapper">  	
+	<h2>Report 4: Sum of Quantity (Total Number of Orders) </h2>
+	<pre>
+		SELECT  SUM(quantity) as sumq 
+				FROM gp_Order
+	</pre>
+	<table>
+		<th>Total Orders: </th>
+		<?php sumQ(); ?>
+	</table>
+	</div>
+	
+	<hr>
+
+	
+			
+			
+			
 
 			<div id="footer">
 				<hr/>
